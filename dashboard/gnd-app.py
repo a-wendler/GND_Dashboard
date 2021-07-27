@@ -5,6 +5,7 @@ import altair as alt
 import pydeck as pdk
 import os
 import glob
+from toolz.itertoolz import frequencies
 from wordcloud import WordCloud
 import streamlit_analytics
 
@@ -194,7 +195,9 @@ def systematik_ts():
 
 def zeitverlauf():
     #zeitverlauf der erstellung der GND-Sätze ab Januar 1972
-    created_at = pd.read_csv(f'{path}/../stats/gnd_created_at.csv', index_col='created_at', parse_dates=True, header=0, names=['created_at', 'count'])
+    created_at = pd.read_csv(f'{path}/../stats/gnd_created_at.csv', index_col='created_at', parse_dates=False, header=0, names=['created_at', 'count'])
+    # created_at.index = pd.PeriodIndex(created_at.index, freq='M')
+    st.dataframe(created_at)
     
     st.subheader('Zeitverlauf der GND-Datensatzerstellung')
     st.write('Auf einer Zeitleiste wird die Anzahl der monatlich erstellten GND-Sätze aufgetragen. Die ersten Sätze stammen aus dem Januar 1972')
@@ -202,7 +205,7 @@ def zeitverlauf():
     created = alt.Chart(created_at[f'{created_filt[0]}':f'{created_filt[1]}'].reset_index()).mark_line().encode(
         alt.X('created_at:T', title='Erstelldatum'),
         alt.Y('count:Q', title='Sätze pro Monat'),
-        tooltip=['count']
+        tooltip = [alt.Tooltip('count:Q', title='Anzahl'), alt.Tooltip('created_at:T', title='Erstelldatum')]
     )
     return st.altair_chart(created, use_container_width=True)
 
